@@ -1,19 +1,13 @@
 import { useState, useEffect } from 'react';
 import { FaceCropper } from './components/FaceCropper';
+import { generateTemplate } from './utils/canvasGenerator';
 import type { Box } from './types';
 
 export function TestCrop() {
   const [imageSrc] = useState('/test_foto.jpg');
   const [imgNaturalWidth, setImgNaturalWidth] = useState(0);
   const [imgNaturalHeight, setImgNaturalHeight] = useState(0);
-
-  // Hardcoded initialBox covering roughly center 40% of the image
-  const initialBox: Box = {
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-  };
+  const [templateDataUrl, setTemplateDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const img = new Image();
@@ -21,12 +15,10 @@ export function TestCrop() {
     img.onload = () => {
       setImgNaturalWidth(img.naturalWidth);
       setImgNaturalHeight(img.naturalHeight);
-      // Update initialBox based on actual dimensions
       console.log('Image loaded:', img.naturalWidth, 'x', img.naturalHeight);
     };
   }, [imageSrc]);
 
-  // Calculate initialBox once we have dimensions
   const initialBoxCalculated: Box = imgNaturalWidth > 0
     ? {
         x: Math.round(imgNaturalWidth * 0.3),
@@ -34,10 +26,18 @@ export function TestCrop() {
         width: Math.round(imgNaturalWidth * 0.4),
         height: Math.round(imgNaturalHeight * 0.4),
       }
-    : initialBox;
+    : { x: 0, y: 0, width: 0, height: 0 };
 
   const handleCropComplete = (finalBox: Box) => {
     console.log('Final crop box (natural pixels):', finalBox);
+
+    const img = new Image();
+    img.src = imageSrc;
+    img.onload = () => {
+      const template = generateTemplate(img, finalBox);
+      console.log('Canvas: 1772 x 1181');
+      setTemplateDataUrl(template);
+    };
   };
 
   if (imgNaturalWidth === 0) {
@@ -57,6 +57,12 @@ export function TestCrop() {
         imageNaturalHeight={imgNaturalHeight}
         onCropComplete={handleCropComplete}
       />
+      {templateDataUrl && (
+        <div style={{ marginTop: '2rem' }}>
+          <h2>Generated Template (1772 x 1181)</h2>
+          <img src={templateDataUrl} alt="Template preview" style={{ maxWidth: '100%', border: '1px solid #ccc' }} />
+        </div>
+      )}
     </div>
   );
 }
