@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaceCropper } from './components/FaceCropper';
+import { TemplatePreview } from './components/TemplatePreview';
 import { generateTemplate } from './utils/canvasGenerator';
 import type { Box } from './types';
 
@@ -44,6 +45,14 @@ export function TestCrop() {
     return <div style={{ padding: '2rem' }}>Loading image...</div>;
   }
 
+  const handleReset = () => {
+    window.location.reload();
+  };
+
+  if (imgNaturalWidth === 0) {
+    return <div style={{ padding: '2rem' }}>Loading image...</div>;
+  }
+
   return (
     <div style={{ padding: '2rem' }}>
       <h1>Face Cropper Test</h1>
@@ -58,10 +67,7 @@ export function TestCrop() {
         onCropComplete={handleCropComplete}
       />
       {templateDataUrl && (
-        <div style={{ marginTop: '2rem' }}>
-          <h2>Generated Template (1772 x 1181)</h2>
-          <img src={templateDataUrl} alt="Template preview" style={{ maxWidth: '100%', border: '1px solid #ccc' }} />
-        </div>
+        <TemplatePreview templateDataUrl={templateDataUrl} onReset={handleReset} />
       )}
     </div>
   );
