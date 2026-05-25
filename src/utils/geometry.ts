@@ -1,4 +1,4 @@
-import { Box } from '../types';
+import type { Box } from '../types';
 
 /**
  * Generates a centered square covering approx. 1/4 of the image height.
