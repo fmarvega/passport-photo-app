@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import type { Box } from '../types';
@@ -21,6 +21,9 @@ export function FaceCropper({
   imageNaturalHeight,
   onCropComplete,
 }: FaceCropperProps) {
+  // Ref to track rendered image dimensions for pixel->percentage conversion
+  const imgRef = useRef<HTMLImageElement>(null);
+
   // State: crop always in percentages
   const [crop, setCrop] = useState<Crop>(() => ({
     unit: '%',
@@ -30,16 +33,29 @@ export function FaceCropper({
     height: (initialBox.height / imageNaturalHeight) * 100,
   }));
 
-  // Convert percentage crop to natural pixels and call parent
+  // Convert crop to natural pixels and call parent
+  // Handles both percentage and pixel units from ReactCrop
   const confirmCrop = useCallback(
     (currentCrop: Crop) => {
-      const finalBox: Box = {
-        x: Math.round(((currentCrop.x as number) / 100) * imageNaturalWidth),
-        y: Math.round(((currentCrop.y as number) / 100) * imageNaturalHeight),
-        width: Math.round(((currentCrop.width as number) / 100) * imageNaturalWidth),
-        height: Math.round(((currentCrop.height as number) / 100) * imageNaturalHeight),
-      };
-      onCropComplete(finalBox);
+      let finalX: number, finalY: number, finalW: number, finalH: number;
+
+      if ((currentCrop.unit as string) === '%' || currentCrop.unit === undefined) {
+        // Percentage: convert using natural dimensions
+        finalX = Math.round(((currentCrop.x as number) / 100) * imageNaturalWidth);
+        finalY = Math.round(((currentCrop.y as number) / 100) * imageNaturalHeight);
+        finalW = Math.round(((currentCrop.width as number) / 100) * imageNaturalWidth);
+        finalH = Math.round(((currentCrop.height as number) / 100) * imageNaturalHeight);
+      } else {
+        // Pixel values from ReactCrop: convert using rendered image dimensions
+        const clientW = imgRef.current?.clientWidth ?? imageNaturalWidth;
+        const clientH = imgRef.current?.clientHeight ?? imageNaturalHeight;
+        finalX = Math.round(((currentCrop.x as number) / clientW) * imageNaturalWidth);
+        finalY = Math.round(((currentCrop.y as number) / clientH) * imageNaturalHeight);
+        finalW = Math.round(((currentCrop.width as number) / clientW) * imageNaturalWidth);
+        finalH = Math.round(((currentCrop.height as number) / clientH) * imageNaturalHeight);
+      }
+
+      onCropComplete({ x: finalX, y: finalY, width: finalW, height: finalH });
     },
     [imageNaturalWidth, imageNaturalHeight, onCropComplete]
   );
@@ -150,6 +166,7 @@ export function FaceCropper({
           aspect={26 / 32}
         >
           <img
+            ref={imgRef}
             src={imageSrc}
             alt="Crop preview"
             style={{ maxHeight: '65vh', maxWidth: '100%', objectFit: 'contain' }}

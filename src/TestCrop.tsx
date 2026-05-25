@@ -24,10 +24,18 @@ export function TestCrop() {
     ? {
         x: Math.round(imgNaturalWidth * 0.3),
         y: Math.round(imgNaturalHeight * 0.3),
-        width: Math.round(imgNaturalWidth * 0.4),
+        width: Math.round(imgNaturalHeight * 0.4 * (26 / 32)), // Maintain 26/32 ratio
         height: Math.round(imgNaturalHeight * 0.4),
       }
     : { x: 0, y: 0, width: 0, height: 0 };
+
+  // Ensure initialBox stays within image bounds
+  const safeInitialBox: Box = {
+    x: Math.min(initialBoxCalculated.x, imgNaturalWidth - initialBoxCalculated.width),
+    y: Math.min(initialBoxCalculated.y, imgNaturalHeight - initialBoxCalculated.height),
+    width: Math.min(initialBoxCalculated.width, imgNaturalWidth),
+    height: Math.min(initialBoxCalculated.height, imgNaturalHeight),
+  };
 
   const handleCropComplete = (finalBox: Box) => {
     console.log('Final crop box (natural pixels):', finalBox);
@@ -41,17 +49,9 @@ export function TestCrop() {
     };
   };
 
-  if (imgNaturalWidth === 0) {
-    return <div style={{ padding: '2rem' }}>Loading image...</div>;
-  }
-
   const handleReset = () => {
     window.location.reload();
   };
-
-  if (imgNaturalWidth === 0) {
-    return <div style={{ padding: '2rem' }}>Loading image...</div>;
-  }
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -60,7 +60,7 @@ export function TestCrop() {
       <p>Initial box: {initialBoxCalculated.x}, {initialBoxCalculated.y}, {initialBoxCalculated.width} x {initialBoxCalculated.height}</p>
       <FaceCropper
         imageSrc={imageSrc}
-        initialBox={initialBoxCalculated}
+        initialBox={safeInitialBox}
         faceBox={null}
         imageNaturalWidth={imgNaturalWidth}
         imageNaturalHeight={imgNaturalHeight}
