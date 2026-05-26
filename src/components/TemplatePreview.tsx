@@ -15,13 +15,15 @@ export function TemplatePreview({ templateDataUrl, onReset }: Props) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-4 max-w-full">
       <h2 className="text-xl font-bold">Your Printable Template</h2>
-      <img
-        src={templateDataUrl}
-        alt="Template preview"
-        className="max-w-full border border-gray-300 shadow"
-      />
+      <div className="max-w-full overflow-hidden">
+        <img
+          src={templateDataUrl}
+          alt="Template preview"
+          className="max-w-full h-auto border border-gray-300 shadow"
+        />
+      </div>
       <div className="flex gap-4">
         <button
           onClick={handleDownload}

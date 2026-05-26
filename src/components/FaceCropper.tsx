@@ -47,19 +47,40 @@ export function FaceCropper({
     cropRef.current = crop;
   }, [crop]);
 
+  // Normalize crop to percentage units before storing
+  const normalizeToPercentage = useCallback((c: Crop) => {
+    if ((c.unit as string) === '%' || c.unit === undefined) {
+      setCropState(c);
+      return;
+    }
+    const clientW = imgRef.current?.clientWidth ?? imageNaturalWidth;
+    const clientH = imgRef.current?.clientHeight ?? imageNaturalHeight;
+    setCropState({
+      unit: '%' as const,
+      x: ((c.x as number) / clientW) * 100,
+      y: ((c.y as number) / clientH) * 100,
+      width: ((c.width as number) / clientW) * 100,
+      height: ((c.height as number) / clientH) * 100,
+    });
+  }, [imageNaturalWidth, imageNaturalHeight]);
+
   const moveCrop = useCallback((dx: number, dy: number) => {
     const current = cropRef.current;
     if (!current) return;
 
+    const percW = current.width as number;
+    const percH = current.height as number;
     const step = STEP_VALUES[stepRef.current];
-    const newCrop: Crop = {
-      unit: '%',
-      x: Math.max(0, Math.min((current.x as number) + dx * step, 100 - (current.width as number))),
-      y: Math.max(0, Math.min((current.y as number) + dy * step, 100 - (current.height as number))),
-      width: current.width,
-      height: current.height,
-    };
-    setCropState(newCrop);
+    const newX = Math.max(0, Math.min((current.x as number) + dx * step, 100 - percW));
+    const newY = Math.max(0, Math.min((current.y as number) + dy * step, 100 - percH));
+
+    setCropState({
+      unit: '%' as const,
+      x: newX,
+      y: newY,
+      width: percW,
+      height: percH,
+    });
   }, []);
 
   const resetCrop = useCallback(() => {
@@ -116,23 +137,14 @@ export function FaceCropper({
     const current = cropRef.current;
     if (!current) return;
 
-    let finalX: number, finalY: number, finalW: number, finalH: number;
-
-    if ((current.unit as string) === '%' || current.unit === undefined) {
-      finalX = Math.round(((current.x as number) / 100) * imageNaturalWidth);
-      finalY = Math.round(((current.y as number) / 100) * imageNaturalHeight);
-      finalW = Math.round(((current.width as number) / 100) * imageNaturalWidth);
-      finalH = Math.round(((current.height as number) / 100) * imageNaturalHeight);
-    } else {
-      const clientW = imgRef.current?.clientWidth ?? imageNaturalWidth;
-      const clientH = imgRef.current?.clientHeight ?? imageNaturalHeight;
-      finalX = Math.round(((current.x as number) / clientW) * imageNaturalWidth);
-      finalY = Math.round(((current.y as number) / clientH) * imageNaturalHeight);
-      finalW = Math.round(((current.width as number) / clientW) * imageNaturalWidth);
-      finalH = Math.round(((current.height as number) / clientH) * imageNaturalHeight);
-    }
-
-    onCropComplete({ x: finalX, y: finalY, width: finalW, height: finalH });
+    // Crop is always normalized to percentages
+    const finalBox: Box = {
+      x: Math.round(((current.x as number) / 100) * imageNaturalWidth),
+      y: Math.round(((current.y as number) / 100) * imageNaturalHeight),
+      width: Math.round(((current.width as number) / 100) * imageNaturalWidth),
+      height: Math.round(((current.height as number) / 100) * imageNaturalHeight),
+    };
+    onCropComplete(finalBox);
   }, [imageNaturalWidth, imageNaturalHeight, onCropComplete]);
 
   // Keyboard navigation
@@ -163,7 +175,7 @@ export function FaceCropper({
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="max-w-full overflow-hidden border border-gray-200 bg-gray-100 rounded shadow-inner">
-        <ReactCrop crop={crop} onChange={(c) => setCropState(c)} aspect={26 / 32}>
+        <ReactCrop crop={crop} onChange={normalizeToPercentage} aspect={26 / 32}>
           <img
             ref={imgRef}
             src={imageSrc}
