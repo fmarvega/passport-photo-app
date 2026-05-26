@@ -174,44 +174,48 @@ export function FaceCropper({
       </div>
 
       {/* Step selector and nudge buttons */}
-      <div className="flex items-center gap-4">
-        <label className="text-sm font-medium">Step:</label>
+      <div className="flex items-center gap-3">
+        <label className="text-sm font-medium text-gray-700">Step:</label>
         <select
-          className="px-2 py-1 border border-gray-300 rounded"
+          className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           defaultValue="1"
           onChange={(e) => { stepRef.current = e.target.value as keyof typeof STEP_VALUES; }}
         >
-          <option value="1">×1</option>
-          <option value="2">×2</option>
-          <option value="5">×5</option>
-          <option value="10">×10</option>
+          <option value="1">×1 (0.3%)</option>
+          <option value="2">×2 (0.6%)</option>
+          <option value="5">×5 (1.5%)</option>
+          <option value="10">×10 (3.0%)</option>
         </select>
       </div>
 
       <div className="flex flex-col items-center gap-2">
         <button
           onClick={() => moveCrop(0, -1)}
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          className="w-12 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300 text-lg font-bold"
+          aria-label="Move up"
         >
           ▲
         </button>
         <div className="flex gap-2">
           <button
             onClick={() => moveCrop(-1, 0)}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="w-12 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300 text-lg font-bold"
+            aria-label="Move left"
           >
             ◀
           </button>
           <button
             onClick={() => moveCrop(1, 0)}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="w-12 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300 text-lg font-bold"
+            aria-label="Move right"
           >
             ▶
           </button>
         </div>
         <button
           onClick={() => moveCrop(0, 1)}
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          className="w-12 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300 text-lg font-bold"
+          aria-label="Move down"
         >
           ▼
         </button>
