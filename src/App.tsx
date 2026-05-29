@@ -155,18 +155,13 @@ export default function App() {
                 <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
               </div>
             ) : (
-              <ImageUploader onImageSelected={handleImageSelected} />
+              <ImageUploader onImageSelected={handleImageSelected} loading={detecting} />
             )}
           </div>
         )}
 
         {stage === 'crop' && initialCrop && (
           <div>
-            {detecting && (
-              <div className="mb-4 p-3 bg-[hsl(var(--primary))/0.1] border border-[hsl(var(--primary))/0.2] rounded-lg text-center">
-                <p className="text-[hsl(var(--primary))] text-sm">Detecting face…</p>
-              </div>
-            )}
             <FaceCropper
               imageSrc={imageSrc}
               initialBox={initialCrop}
@@ -174,6 +169,7 @@ export default function App() {
               imageNaturalWidth={imgNaturalWidth}
               imageNaturalHeight={imgNaturalHeight}
               onCropComplete={handleCropConfirm}
+              onReset={reset}
             />
           </div>
         )}

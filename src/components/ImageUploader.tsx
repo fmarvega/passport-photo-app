@@ -5,9 +5,10 @@ import { Upload } from 'lucide-react';
 
 interface Props {
   onImageSelected: (dataUrl: string) => void;
+  loading?: boolean;
 }
 
-export function ImageUploader({ onImageSelected }: Props) {
+export function ImageUploader({ onImageSelected, loading }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
 
@@ -56,26 +57,37 @@ export function ImageUploader({ onImageSelected }: Props) {
       <CardHeader className="text-center">
         <CardTitle>Upload your photo</CardTitle>
         <CardDescription>
-          {dragging ? 'Drop your photo here' : 'Drop a photo or click to browse — face detection runs entirely in your browser.'}
+          {loading
+            ? 'Processing image…'
+            : dragging
+              ? 'Drop your photo here'
+              : 'Drop a photo or click to browse — face detection runs entirely in your browser.'}
         </CardDescription>
       </CardHeader>
-      <CardContent
-        className={`flex flex-col items-center gap-6 py-8 border-2 border-dashed rounded-lg mx-6 mb-6 transition-colors duration-200 ${dragging ? 'border-primary bg-primary/5' : 'border-transparent'}`}
-      >
-        <div className={`flex items-center justify-center w-20 h-20 rounded-full transition-colors duration-200 ${dragging ? 'bg-primary/10' : 'bg-[hsl(var(--muted))]'}`}>
-          <Upload className={`w-8 h-8 transition-colors duration-200 ${dragging ? 'text-primary' : 'text-[hsl(var(--muted-foreground))]'}`} />
-        </div>
-        <Button size="lg" className="gap-2" onClick={() => fileInputRef.current?.click()}>
-          <Upload className="w-4 h-4" />
-          Choose Photo
-        </Button>
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={handleChange}
-          className="hidden"
-        />
+      <CardContent className="flex flex-col items-center gap-6 py-8 border-2 border-dashed rounded-lg mx-6 mb-6 border-transparent">
+        {loading ? (
+          <div className="flex flex-col items-center gap-4 py-4">
+            <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full" />
+            <p className="text-sm text-[hsl(var(--muted-foreground))]">Detecting face & preparing crop…</p>
+          </div>
+        ) : (
+          <>
+            <div className={`flex items-center justify-center w-20 h-20 rounded-full transition-colors duration-200 ${dragging ? 'bg-primary/10' : 'bg-[hsl(var(--muted))]'}`}>
+              <Upload className={`w-8 h-8 transition-colors duration-200 ${dragging ? 'text-primary' : 'text-[hsl(var(--muted-foreground))]'}`} />
+            </div>
+            <Button size="lg" className="gap-2" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="w-4 h-4" />
+              Choose Photo
+            </Button>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handleChange}
+              className="hidden"
+            />
+          </>
+        )}
       </CardContent>
     </Card>
   );

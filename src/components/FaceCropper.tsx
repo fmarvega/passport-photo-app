@@ -6,7 +6,7 @@ import { area2rect } from '../utils/geometry';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CheckCircle2, RotateCcw } from 'lucide-react';
 
 interface FaceCropperProps {
   imageSrc: string;
@@ -15,6 +15,7 @@ interface FaceCropperProps {
   imageNaturalWidth: number;
   imageNaturalHeight: number;
   onCropComplete: (finalBoxNatural: Box) => void;
+  onReset: () => void;
 }
 
 const STEP_VALUES = { '1': 0.3, '2': 0.6, '5': 1.5, '10': 3.0 };
@@ -26,6 +27,7 @@ export function FaceCropper({
   imageNaturalWidth,
   imageNaturalHeight,
   onCropComplete,
+  onReset,
 }: FaceCropperProps) {
   const imgRef = useRef<HTMLImageElement>(null);
   const cropRef = useRef<Crop | null>(null);
@@ -251,10 +253,16 @@ export function FaceCropper({
           ↑ ↓ ← → to move · O to reset · C to re-center · Enter to confirm
         </p>
 
-        <Button size="lg" className="w-full gap-2" onClick={confirmCrop}>
-          <CheckCircle2 className="w-4 h-4" />
-          Confirm Crop & Create Template
-        </Button>
+        <div className="flex gap-3">
+          <Button size="lg" className="flex-1 gap-2" onClick={confirmCrop}>
+            <CheckCircle2 className="w-4 h-4" />
+            Confirm and generate
+          </Button>
+          <Button size="lg" variant="outline" className="gap-2" onClick={onReset}>
+            <RotateCcw className="w-4 h-4" />
+            Start Over
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
