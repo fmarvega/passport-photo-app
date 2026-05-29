@@ -1,3 +1,6 @@
+import { Button } from './ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Download, RotateCcw } from 'lucide-react';
 
 interface Props {
   templateDataUrl: string;
@@ -15,29 +18,32 @@ export function TemplatePreview({ templateDataUrl, onReset }: Props) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full overflow-hidden">
-      <h2 className="text-xl font-bold">Your Printable Template</h2>
-      <div className="w-full">
-        <img
-          src={templateDataUrl}
-          alt="Template preview"
-          className="w-full h-auto block border border-gray-300 shadow"
-        />
-      </div>
-      <div className="flex gap-4">
-        <button
-          onClick={handleDownload}
-          className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Download JPG
-        </button>
-        <button
-          onClick={onReset}
-          className="px-6 py-2 bg-gray-300 rounded hover:bg-gray-400"
-        >
-          Start Over
-        </button>
-      </div>
-    </div>
+    <Card className="w-full">
+      <CardHeader className="text-center">
+        <CardTitle>Your printable template</CardTitle>
+        <CardDescription>
+          15 × 10 cm · 300 DPI · 5 × 3 grid · ready to print
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-6">
+        <div className="w-full overflow-hidden rounded-lg border border-[hsl(var(--border))]">
+          <img
+            src={templateDataUrl}
+            alt="Template preview"
+            className="w-full h-auto block"
+          />
+        </div>
+        <div className="flex gap-3 justify-center flex-wrap">
+          <Button size="lg" className="gap-2" onClick={handleDownload}>
+            <Download className="w-4 h-4" />
+            Download JPG
+          </Button>
+          <Button size="lg" variant="outline" className="gap-2" onClick={onReset}>
+            <RotateCcw className="w-4 h-4" />
+            Start Over
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

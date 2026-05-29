@@ -1,10 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ImageUploader } from './components/ImageUploader';
 import { FaceCropper } from './components/FaceCropper';
 import { TemplatePreview } from './components/TemplatePreview';
 import { useFaceDetection } from './hooks/useFaceDetection';
 import { generateTemplate } from './utils/canvasGenerator';
 import { area2rect } from './utils/geometry';
+import { Button } from './components/ui/button';
+import { Sun, Moon } from 'lucide-react';
 import type { Box, ProcessingStage } from './types';
 
 const FACTOR_GUESS = 3.8;
@@ -19,8 +21,22 @@ export default function App() {
   const [templateDataUrl, setTemplateDataUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [detecting, setDetecting] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   const { modelsLoaded, detectFace } = useFaceDetection();
+
+  useEffect(() => {
+    const saved = localStorage.getItem('passport-photo-theme') as 'light' | 'dark' | null;
+    if (saved) {
+      setTheme(saved);
+      document.documentElement.classList.toggle('dark', saved === 'dark');
+    }
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem('passport-photo-theme', theme);
+  }, [theme]);
 
   const reset = () => {
     setStage('upload');
@@ -101,24 +117,25 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center">
-            Passport Photo Generator
-          </h1>
-          <p className="text-gray-600 text-center mt-2 text-sm sm:text-base">
-            Upload a portrait, adjust the crop to the correct 26:32 ratio, and download a printable template with 5×3 photos.
-          </p>
+    <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] transition-colors duration-300">
+      <header className="border-b border-[hsl(var(--border))]">
+        <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+          <span className="font-semibold text-lg tracking-tight">Passport Photo Generator</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            aria-label="Toggle theme"
+          >
+            {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+          </Button>
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="flex-1 max-w-4xl mx-auto px-4 py-6 w-full">
+      <main className="flex-1 max-w-2xl mx-auto px-4 py-8 w-full">
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">{error}</p>
+          <div className="mb-4 p-4 bg-[hsl(var(--destructive))/0.1] border border-[hsl(var(--destructive))/0.2] rounded-lg">
+            <p className="text-[hsl(var(--destructive))]">{error}</p>
           </div>
         )}
 
@@ -126,8 +143,8 @@ export default function App() {
           <div className="flex flex-col items-center justify-center py-12">
             {!modelsLoaded ? (
               <div className="text-center">
-                <p className="text-gray-600 mb-3">Loading AI components…</p>
-                <div className="animate-spin h-10 w-10 border-4 border-blue-500 border-t-transparent rounded-full mx-auto" />
+                <p className="text-[hsl(var(--muted-foreground))] mb-3">Loading AI components…</p>
+                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
               </div>
             ) : (
               <ImageUploader onImageSelected={handleImageSelected} />
@@ -138,14 +155,10 @@ export default function App() {
         {stage === 'crop' && initialCrop && (
           <div>
             {detecting && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
-                <p className="text-blue-700 text-sm">Detecting face…</p>
+              <div className="mb-4 p-3 bg-[hsl(var(--primary))/0.1] border border-[hsl(var(--primary))/0.2] rounded-lg text-center">
+                <p className="text-[hsl(var(--primary))] text-sm">Detecting face…</p>
               </div>
             )}
-            <p className="text-center mb-3 text-sm text-gray-600 px-2">
-              Adjust the crop rectangle. Use arrow keys or the nudge buttons below.
-              Press 'O' to reset, 'C' to re-center on face, Enter or the button to confirm.
-            </p>
             <FaceCropper
               imageSrc={imageSrc}
               initialBox={initialCrop}
