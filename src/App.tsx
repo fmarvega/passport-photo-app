@@ -21,22 +21,30 @@ export default function App() {
   const [templateDataUrl, setTemplateDataUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [detecting, setDetecting] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
   const { modelsLoaded, detectFace } = useFaceDetection();
 
-  useEffect(() => {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const saved = localStorage.getItem('passport-photo-theme') as 'light' | 'dark' | null;
-    if (saved) {
-      setTheme(saved);
-      document.documentElement.classList.toggle('dark', saved === 'dark');
-    }
-  }, []);
+    if (saved) return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
     localStorage.setItem('passport-photo-theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e: MediaQueryListEvent) => {
+      const saved = localStorage.getItem('passport-photo-theme');
+      if (!saved) {
+        setTheme(e.matches ? 'dark' : 'light');
+      }
+    };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   const reset = () => {
     setStage('upload');
