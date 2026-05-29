@@ -3,6 +3,10 @@ import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import type { Box } from '../types';
 import { area2rect } from '../utils/geometry';
+import { Button } from './ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CheckCircle2, RotateCcw } from 'lucide-react';
 
 interface FaceCropperProps {
   imageSrc: string;
@@ -11,9 +15,9 @@ interface FaceCropperProps {
   imageNaturalWidth: number;
   imageNaturalHeight: number;
   onCropComplete: (finalBoxNatural: Box) => void;
+  onReset: () => void;
 }
 
-// Step multipliers: ×1 = 0.3%, ×2 = 0.6%, ×5 = 1.5%, ×10 = 3.0%
 const STEP_VALUES = { '1': 0.3, '2': 0.6, '5': 1.5, '10': 3.0 };
 
 export function FaceCropper({
@@ -23,6 +27,7 @@ export function FaceCropper({
   imageNaturalWidth,
   imageNaturalHeight,
   onCropComplete,
+  onReset,
 }: FaceCropperProps) {
   const imgRef = useRef<HTMLImageElement>(null);
   const cropRef = useRef<Crop | null>(null);
@@ -42,12 +47,10 @@ export function FaceCropper({
     };
   });
 
-  // Keep cropRef in sync with crop state
   useEffect(() => {
     cropRef.current = crop;
   }, [crop]);
 
-  // Normalize crop to percentage units before storing
   const normalizeToPercentage = useCallback((c: Crop) => {
     if ((c.unit as string) === '%' || c.unit === undefined) {
       setCropState(c);
@@ -137,7 +140,6 @@ export function FaceCropper({
     const current = cropRef.current;
     if (!current) return;
 
-    // Crop is always normalized to percentages
     const finalBox: Box = {
       x: Math.round(((current.x as number) / 100) * imageNaturalWidth),
       y: Math.round(((current.y as number) / 100) * imageNaturalHeight),
@@ -147,7 +149,6 @@ export function FaceCropper({
     onCropComplete(finalBox);
   }, [imageNaturalWidth, imageNaturalHeight, onCropComplete]);
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
@@ -173,72 +174,96 @@ export function FaceCropper({
   }, [moveCrop, resetCrop, recenterOnFace, confirmCrop]);
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="max-w-full overflow-hidden border border-gray-200 bg-gray-100 rounded shadow-inner">
-        <ReactCrop crop={crop} onChange={normalizeToPercentage} aspect={26 / 32}>
-          <img
-            ref={imgRef}
-            src={imageSrc}
-            alt="Crop preview"
-            style={{ maxHeight: '65vh', maxWidth: '100%', objectFit: 'contain' }}
-          />
-        </ReactCrop>
-      </div>
-
-      {/* Step selector and nudge buttons */}
-      <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-gray-700">Step:</label>
-        <select
-          className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          defaultValue="1"
-          onChange={(e) => { stepRef.current = e.target.value as keyof typeof STEP_VALUES; }}
-        >
-          <option value="1">×1 (0.3%)</option>
-          <option value="2">×2 (0.6%)</option>
-          <option value="5">×5 (1.5%)</option>
-          <option value="10">×10 (3.0%)</option>
-        </select>
-      </div>
-
-      <div className="flex flex-col items-center gap-2">
-        <button
-          onClick={() => moveCrop(0, -1)}
-          className="w-12 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300 text-lg font-bold"
-          aria-label="Move up"
-        >
-          ▲
-        </button>
-        <div className="flex gap-2">
-          <button
-            onClick={() => moveCrop(-1, 0)}
-            className="w-12 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300 text-lg font-bold"
-            aria-label="Move left"
-          >
-            ◀
-          </button>
-          <button
-            onClick={() => moveCrop(1, 0)}
-            className="w-12 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300 text-lg font-bold"
-            aria-label="Move right"
-          >
-            ▶
-          </button>
+    <Card className="w-full">
+      <CardHeader className="text-center">
+        <CardTitle>Adjust crop</CardTitle>
+        <CardDescription>
+          Drag or use the controls. Aspect ratio 26×32 is locked.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <div className="w-full overflow-hidden rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--muted))] flex items-center justify-center">
+          <ReactCrop crop={crop} onChange={normalizeToPercentage} aspect={26 / 32}>
+            <img
+              ref={imgRef}
+              src={imageSrc}
+              alt="Crop preview"
+              style={{ maxHeight: '60vh', maxWidth: '100%', display: 'block' }}
+            />
+          </ReactCrop>
         </div>
-        <button
-          onClick={() => moveCrop(0, 1)}
-          className="w-12 h-10 sm:w-10 sm:h-10 flex items-center justify-center bg-gray-200 rounded-md hover:bg-gray-300 text-lg font-bold"
-          aria-label="Move down"
-        >
-          ▼
-        </button>
-      </div>
 
-      <button
-        onClick={confirmCrop}
-        className="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md"
-      >
-        Confirm Crop & Create Template
-      </button>
-    </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-[hsl(var(--foreground))] whitespace-nowrap">Step size</span>
+          <Select
+            defaultValue="1"
+            onValueChange={(v) => { stepRef.current = v as keyof typeof STEP_VALUES; }}
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">×1 (0.3%)</SelectItem>
+              <SelectItem value="2">×2 (0.6%)</SelectItem>
+              <SelectItem value="5">×5 (1.5%)</SelectItem>
+              <SelectItem value="10">×10 (3.0%)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-col items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => moveCrop(0, -1)}
+            aria-label="Move up"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </Button>
+          <div className="flex gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => moveCrop(-1, 0)}
+              aria-label="Move left"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="w-10 h-10" />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => moveCrop(1, 0)}
+              aria-label="Move right"
+            >
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => moveCrop(0, 1)}
+            aria-label="Move down"
+          >
+            <ArrowDown className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <p className="text-xs text-[hsl(var(--muted-foreground))] text-center">
+          ↑ ↓ ← → to move · O to reset · C to re-center · Enter to confirm
+        </p>
+
+        <div className="flex gap-3">
+          <Button size="lg" className="flex-1 gap-2" onClick={confirmCrop}>
+            <CheckCircle2 className="w-4 h-4" />
+            Confirm and generate
+          </Button>
+          <Button size="lg" variant="outline" className="gap-2" onClick={onReset}>
+            <RotateCcw className="w-4 h-4" />
+            Start Over
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
